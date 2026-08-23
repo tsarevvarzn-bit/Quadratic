@@ -1,22 +1,38 @@
-CODE_ERRORS     RunManualMode();                                                                     //Основные режимы работы
-CODE_ERRORS     RunFileMode();
-CODE_ERRORS     RunRandMode();
-CODE_ERRORS     RunUnitTests();
+CODE_ERRORS     runManualMode();                                                                     //Основные режимы работы
+CODE_ERRORS     runFileMode();
+CODE_ERRORS     runRandMode();
+CODE_ERRORS     runUnitTests();
+CODE_ERRORS     runHelpMode();
 
 
 
-CODE_ERRORS     RunRandMode(){
-
-    printf("Enter the number of equations: ");
+CODE_ERRORS     runRandMode(){
     int n = 0;
+    printf("Enter the number of equations: ");
     scanf("%d", &n);
     printf("\n");
 
+    if(n > MAXIMUM_NUMBER_OF_RANDOM_EQUATIONS){
+        printf("Are you sure you want to generate so many equations? Y/N:");
+        if(!isYes())
+            return incorrect_number_of_equations;
+    }
     if(n > 0){
         double a = 0, b = 0, c = 0;
-        time_t mytime = time(NULL);//Берет текущее время
-        struct tm *now = localtime(&mytime);//Получаем данные в виде структуры
-        srand(now->tm_sec);//Берем время в секундах с начала секунды
+        int seed = 0;
+        printf("Do you want to use random seed? Y/N:");
+        if(isYes()){
+            time_t mytime = time(NULL);//Берет текущее время
+            struct tm *now = localtime(&mytime);//Получаем данные в виде структуры
+            seed = now->tm_sec;
+            srand(seed);//Берем время в секундах с начала секунды // TODO Why not __TIME__
+            printf("\nSeed of this generation: %d\n\n", seed);
+        }else{
+            printf("Enter seed:");
+            if(scanf("%d", &seed) != 1)
+                return incorrect_seed;
+            printf("\n");
+        }
         for(int i = 0; i < n; i++){
             getRandCoefficients(&a, &b, &c);
             printf("Roots for %lf %lf %lf:\n", a, b, c);
@@ -24,12 +40,11 @@ CODE_ERRORS     RunRandMode(){
         }
         return correct;
 
-    }else{
+    }else
         return incorrect_number_of_equations;
-    }
 }
 
-CODE_ERRORS     RunManualMode(){
+CODE_ERRORS     runManualMode(){
 
     double a = 0, b = 0, c = 0;
     printf("The program for solving square equation, please print a, b, c: \n\n");
@@ -48,28 +63,26 @@ CODE_ERRORS     RunManualMode(){
     return error_code;
 }
 
-CODE_ERRORS     RunFileMode(){
+CODE_ERRORS     runFileMode(){
 
     double a = 0, b = 0, c = 0;
     FILE *input_file = NULL;
     CODE_ERRORS error_code = correct;
+
     if((error_code = enterFileName(&input_file)) != correct){
         return error_code;
     }
+
     while((error_code = getCoefficients(&a, &b, &c, input_file)) == correct){
         printf("Roots for %lg %lg %lg:\n", a, b, c);
         solveAndPrint(a, b, c);
     }
-    if(error_code == end_of_file){
-        solveAndPrint(a, b, c);
-    }
-
     return error_code;
 }
 
-CODE_ERRORS     RunUnitTests(){
+CODE_ERRORS     runUnitTests(){
 
-    FILE *input;
+    FILE *input = NULL;
     CODE_ERRORS error_code = correct;
     if((error_code = getInputForUnitTests(&input)) != correct)
         return error_code;
@@ -79,15 +92,19 @@ CODE_ERRORS     RunUnitTests(){
     int num_of_test = 1;
 
     while((error_code = getCoeffAndAns(&a, &b, &c, &n_o_r_ref, &ans1_ref, &ans2_ref, input)) == correct){
-        //Считаем один пример, сравниваем с реф значениями, если не совпадает - выводим данные этого примера
-        if(unitTest(a, b, c, n_o_r_ref, ans1_ref, ans2_ref, num_of_test))
-            printf("Test %d CORRECT\n", num_of_test);
+        if(unitTest(a, b, c, n_o_r_ref, ans1_ref, ans2_ref, num_of_test) == success)
+            printf("Test %d CORRECT\n\n", num_of_test);
         num_of_test++;
     }
-    if(error_code == end_of_file){
-        if(unitTest(a, b, c, n_o_r_ref, ans1_ref, ans2_ref, num_of_test))
-            printf("Test %d CORRECT\n", num_of_test);
-    }
-
     return error_code;
+}
+
+CODE_ERRORS runHelpMode(){
+    printf("This is the program to solve quadratic equations in various forms, the main operating mods:\n"
+            "1)Manual mode - you can enter the coefficients of a quadratic equation directly from the command line and get the solution\n"
+            "2)File mode - you can write the coefficients of several equations at once into a file, and the program will provide an answer for each of them\n"
+            "3)Random mode - the program will generate coefficients and solve the equations\n"
+            "4)Test mode - mode for testing the program and checking edge cases: \n"
+            "provide the program with coefficients and solutions in the form of a file, or enter them via the command line; the program will verify its solutions");
+    return correct;
 }
