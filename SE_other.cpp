@@ -1,0 +1,142 @@
+void            getRandCoefficients(double *a, double *b, double *c);
+void            clearBuf();
+
+SUCCESS_RATE    intToSwitch(NUMBER_OF_ROOTS *n_o_r, int n_o_r_int);
+
+SUCCESS_RATE    unitTest(double a, double b, double c, NUMBER_OF_ROOTS n_o_r_ref, double ans1_ref, double ans2_ref, int num_of_test);
+CODE_ERRORS     getCoeffAndAns(double *a, double *b, double *c, NUMBER_OF_ROOTS *n_o_r, double *ans1, double *ans2, FILE *input);
+CODE_ERRORS     getInputForUnitTests(FILE **input);
+
+CODE_ERRORS     getCoefficients(double *a, double *b, double *c, FILE *input);                   //Взять 3 числа из FILE*
+CODE_ERRORS     enterFileName(FILE **input_file);
+
+
+
+void            getRandCoefficients(double *a, double *b, double *c){
+    // how to solve
+    *a = rand()%2001 - 1000;
+    *b = rand()%2001 - 1000;
+    *c = rand()%2001 - 1000;
+}
+
+void            clearBuf(){
+
+    int c = 0;
+    while(((c = getc(stdin)) != EOF) && (c != '\n'));
+}
+
+SUCCESS_RATE    intToSwitch(NUMBER_OF_ROOTS *n_o_r, int n_o_r_int){
+    switch(n_o_r_int){
+        case 0:
+            *n_o_r = no_roots;
+            break;
+        case 1:
+            *n_o_r = one_root;
+            break;
+        case 2:
+            *n_o_r = two_roots;
+            break;
+        case 3:
+            *n_o_r = infinity_roots;
+            break;
+        default:
+            assert(0 && "Incorrect number of roots");
+    }
+    return success;
+}
+
+CODE_ERRORS     getCoefficients(double *a, double *b, double *c, FILE *input){
+
+    assert(input);
+    int x = 0;
+    if((x = fscanf(input, "%lf %lf %lf", a, b, c)) == 3 && getc(input) == '\n'){
+        return correct;
+    }else{
+        if(x == EOF){
+            return end_of_file;
+        }else{
+            return incorrect_data_format;
+        }
+    }
+}
+
+CODE_ERRORS     getCoeffAndAns(double *a, double *b, double *c, NUMBER_OF_ROOTS *n_o_r, double *ans1, double *ans2, FILE *input){
+
+    assert(input);
+    int x = 0;
+    int n_o_r_int = -1;
+    if((fscanf(input, "%lf %lf %lf %d %lf %lf", a, b, c, &n_o_r_int, ans1, ans2)) == 6 && (x = getc(input)) == '\n'){
+        intToSwitch(n_o_r, n_o_r_int);
+        return correct;
+    }else{
+        if(x == EOF){
+            intToSwitch(n_o_r, n_o_r_int);
+            return end_of_file;
+        }else{
+            return incorrect_data_format;
+        }
+    }
+}
+
+CODE_ERRORS     getInputForUnitTests(FILE **input){
+
+    printf("Do you want read tests from file or enter tests from CMD? f/c:");
+    int s = getchar();
+    while(s != 'f' && s != 'c'){
+        clearBuf();
+        printf("\nOutput is wrong, please enter f/c:");
+        s = getchar();
+    }
+    printf("\n");
+    *input = stdin;
+    CODE_ERRORS error_code = correct;
+    if(s == 'f'){
+        if((error_code = enterFileName(input)) != correct)
+            return error_code;
+    }
+    return correct;
+}
+
+SUCCESS_RATE    unitTest(double a, double b, double c, NUMBER_OF_ROOTS n_o_r_ref, double ans1_ref, double ans2_ref, int num_of_test){
+    double ans1 = 0, ans2 = 0;
+    NUMBER_OF_ROOTS n_o_r = solveSquareEq(a, b, c, &ans1, &ans2);
+    if(n_o_r == n_o_r_ref){
+        switch(n_o_r){
+            case no_roots:
+                return success;
+            case infinity_roots:
+                return success;
+            case one_root:
+                if(isZero(ans1-ans1_ref) || isZero(ans2-ans1_ref))
+                    return success;
+                break;
+            case two_roots:
+                if((isZero(ans1-ans1_ref) && isZero(ans2-ans2_ref))||(isZero(ans1-ans2_ref) && isZero(ans2-ans1_ref)))
+                    return success;
+                break;
+            default:
+                assert(0 && "Incorrect number of roots");
+        }
+    }
+    printf("Test %d FAILED: a = %lg b = %lg c = %lg\n"
+          "expected:    %d roots, x1 = %lg, x2 = %lg\n"
+          "got:         %d roots, x1 = %lg, x2 = %lg\n", num_of_test, a, b, c, n_o_r_ref, ans1_ref, ans2_ref, n_o_r, ans1, ans2);
+    return error;
+}
+
+CODE_ERRORS     enterFileName(FILE **input_file){
+    char file_name[WORD_LEN] = {};
+    printf("Enter file name: ");
+    int n = 0;
+    scanf("%s%n", file_name, &n); // another func from std
+    if(n >= WORD_LEN){
+        return long_file_name;
+    }
+    *input_file = fopen(file_name, "r");
+    if(*input_file == NULL){
+        return incorrect_file_name;
+    }
+    printf("\n");
+    return correct;
+}
+
