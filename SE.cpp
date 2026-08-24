@@ -4,22 +4,23 @@
 #include <string.h>
 #include <assert.h>
 #include <time.h>
+#include <ctype.h>
 
-const int   WORD_LEN = 100;
-const int   MAXIMUM_NUMBER_OF_RANDOM_EQUATIONS = 100;
+const int            WORD_LEN = 100;
+const int            MAXIMUM_NUMBER_OF_RANDOM_EQUATIONS = 100;
 const double         EPSILON = 0.0001;
 
 enum NUMBER_OF_ROOTS {no_roots, one_root, two_roots, infinity_roots}; //Что выводить при отсутствии корней, одном, двух и бесконечном количестве корней
 enum CODE_ERRORS     {correct, CMD_arg_incorrect, long_file_name, incorrect_file_name, incorrect_data_format, incorrect_number_of_equations, end_of_file,
-                      incorrect_seed}; //Что возвращать функциям в случае ошибки и в случае, когда она отработала хорошо
+                      not_a_finite_number_in_the_input, incorrect_number_of_roots}; //Что возвращать функциям в случае ошибки и в случае, когда она отработала хорошо
 enum SUCCESS_RATE    {success = 0, error = 1};
 
-struct Coefficients{
+struct coefficients{
     double a;
     double b;
     double c;
 };
-struct Roots{
+struct roots{
     NUMBER_OF_ROOTS n_o_r;
     double ans1;
     double ans2;
@@ -31,6 +32,8 @@ struct Roots{
 
 CODE_ERRORS     processCMDArgs(int argc, char *argv[]);                                          //Функции, вызывающиеся всегда и из main
 void            printErrors(CODE_ERRORS error_code);
+
+
 
 int main(const int argc, char ** const argv){
 
@@ -60,6 +63,7 @@ CODE_ERRORS     processCMDArgs(int argc, char *argv[]){
             return runHelpMode();
 
     }
+
     return CMD_arg_incorrect;
 }
 
@@ -73,7 +77,7 @@ void            printErrors(CODE_ERRORS error_code){
             printf("ERROR: CMD argument is incorrect\n\n");
             break;
 
-        case long_file_name:///!!!!!!
+        case long_file_name:
             printf("ERROR: The file name is too long\n\n");
             break;
 
@@ -85,12 +89,16 @@ void            printErrors(CODE_ERRORS error_code){
             printf("ERROR: The data format is incorrect\n\n");
             break;
 
+        case not_a_finite_number_in_the_input:
+            printf("ERROR: not a finit number in input\n\n");
+            break;
+
         case incorrect_number_of_equations:
             printf("ERROR: Incorrect number of equations\n\n");
             break;
 
-        case incorrect_seed:
-            printf("ERROR: Incorrect seed\n\n");
+        case incorrect_number_of_roots:
+            printf("ERROR: Incorrect number of roots\n\n");
             break;
 
         case end_of_file:

@@ -1,29 +1,29 @@
-void            solveAndPrint(double a, double b, double c);                                                       //Решает уравнение и выводит корни
-NUMBER_OF_ROOTS solveSquareEq(double a, double b, double c, double *ans1, double *ans2);                           //Решает частный случай гарантированно квадратного уравнения
-NUMBER_OF_ROOTS linearEq(double b, double c, double *ans1);                                                        //Решает частный случай вырожденного уравнения
-NUMBER_OF_ROOTS squareEq(double a, double b, double c, double *ans1, double *ans2);                                //Решает квадратное уравнение в общем случае
-void            printRoots(NUMBER_OF_ROOTS num_of_roots, double ans1, double ans2);                                //Напечатать корни в терминал
-int             isRootCorrect(double a, double b, double c, double root);                                          //Проверяет корни подстановкой
+void            solveAndPrint(coefficients coefficients);                                                       //Решает уравнение и выводит корни
+NUMBER_OF_ROOTS solveSquareEquation(coefficients coefficients, double *ans1, double *ans2);                     //Решает частный случай гарантированно квадратного уравнения
+NUMBER_OF_ROOTS solveLinearEq(double b, double c, double *ans1);                                                   //Решает частный случай вырожденного уравнения
+NUMBER_OF_ROOTS solveSquareEq(coefficients coefficients, double *ans1, double *ans2);                           //Решает квадратное уравнение в общем случае
+void            printRoots(roots roots);                                //Напечатать корни в терминал
+int             isRootCorrect(coefficients coefficients, double root);                                          //Проверяет корни подстановкой
 int             isZero(double x);                                                                                  //Сравнение с нулем
-SUCCESS_RATE    testingTheSolution(double a, double b, double c, NUMBER_OF_ROOTS n_o_r, double ans1, double ans2); //Тестирование подстановкой
-void            printCalcError(double a, double b, double c, NUMBER_OF_ROOTS n_o_r, double ans1, double ans2);     //Вывод ошибки после подстановки
+SUCCESS_RATE    testTheSolution(coefficients coefficients, roots roots);    //Тестирование подстановкой
+void            printCalcError(coefficients coefficients, roots roots);     //Вывод ошибки после подстановки
 
 
 
-void            solveAndPrint(double a, double b, double c){
+void            solveAndPrint(coefficients coefficients){
 
-    assert(isfinite(a));
-    assert(isfinite(b));
-    assert(isfinite(c));
+    assert(isfinite(coefficients.a));
+    assert(isfinite(coefficients.b));
+    assert(isfinite(coefficients.c));
 
+    roots roots = {};
+    roots.ans1 = roots.ans2 = NAN;
 
-    double ans1 = 0, ans2 = 0;
+    roots.n_o_r = solveSquareEquation(coefficients, &(roots.ans1), &(roots.ans2));
 
-    NUMBER_OF_ROOTS num_of_roots = solveSquareEq(a, b, c, &ans1, &ans2);
-
-    switch(testingTheSolution(a, b, c, num_of_roots, ans1, ans2)){
+    switch(testTheSolution(coefficients, roots)){
         case success:
-            printRoots(num_of_roots, ans1, ans2);
+            printRoots(roots);
             break;
         case error:
             break;
@@ -32,25 +32,25 @@ void            solveAndPrint(double a, double b, double c){
     }
 }
 
-NUMBER_OF_ROOTS solveSquareEq(double a, double b, double c, double *ans1, double *ans2){
+NUMBER_OF_ROOTS solveSquareEquation(coefficients coefficients, double *ans1, double *ans2){
 
-    assert(isfinite(a));
-    assert(isfinite(b));
-    assert(isfinite(c));
+    assert(isfinite(coefficients.a));
+    assert(isfinite(coefficients.b));
+    assert(isfinite(coefficients.c));
     assert(ans1 != NULL);
     assert(ans2 != NULL);
 
     *ans1 = NAN;
     *ans2 = NAN;
 
-    if(isZero(a)){//Линейное уравнение
-        return linearEq(b, c, ans1);
+    if(isZero(coefficients.a)){//Линейное уравнение
+        return solveLinearEq(coefficients.b, coefficients.c, ans1);
     }else{//Квадратное уравнение
-        return squareEq(a, b, c, ans1, ans2);
+        return solveSquareEq(coefficients, ans1, ans2);
     }
 }
 
-NUMBER_OF_ROOTS linearEq(double b, double c, double *ans1){
+NUMBER_OF_ROOTS solveLinearEq(double b, double c, double *ans1){
 
     assert(isfinite(b));
     assert(isfinite(c));
@@ -70,11 +70,11 @@ NUMBER_OF_ROOTS linearEq(double b, double c, double *ans1){
     }
 }
 
-NUMBER_OF_ROOTS squareEq(double a, double b, double c, double *ans1, double *ans2){
+NUMBER_OF_ROOTS solveSquareEq(coefficients coefficients, double *ans1, double *ans2){
 
-    assert(isfinite(a));
-    assert(isfinite(b));
-    assert(isfinite(c));
+    assert(isfinite(coefficients.a));
+    assert(isfinite(coefficients.b));
+    assert(isfinite(coefficients.c));
 
     assert(ans1 != NULL);
     assert(ans2 != NULL);
@@ -82,10 +82,10 @@ NUMBER_OF_ROOTS squareEq(double a, double b, double c, double *ans1, double *ans
     *ans1 = NAN;
     *ans2 = NAN;
 
-    double d = (b * b) - 4 * (a * c);
+    double d = (coefficients.b * coefficients.b) - 4 * (coefficients.a * coefficients.c);
 
     if(isZero(d)){
-        *ans1 = (-b)/(2 * a);
+        *ans1 = (-1 * coefficients.b)/(2 * coefficients.a);
         return one_root;
 
     }else if(d < 0){
@@ -93,39 +93,36 @@ NUMBER_OF_ROOTS squareEq(double a, double b, double c, double *ans1, double *ans
 
     }else{
         double s_d = sqrt(d);
-        *ans1 = (-b - s_d)/(2 * a);
-        *ans2 = (-b + s_d)/(2 * a);
+        *ans1 = (-1 * coefficients.b - s_d)/(2 * coefficients.a);
+        *ans2 = (-1 * coefficients.b + s_d)/(2 * coefficients.a);
         return two_roots;
-
     }
 }
 
-void            printRoots(NUMBER_OF_ROOTS num_of_roots, double ans1, double ans2){
+void            printRoots(roots roots){
 
-
-
-    switch(num_of_roots){
+    switch(roots.n_o_r){
         case no_roots:
-            assert(isnan(ans1));
-            assert(isnan(ans2));
+            assert(isnan(roots.ans1));
+            assert(isnan(roots.ans2));
             printf("There is no roots\n");
             break;
 
         case one_root:
-            assert(isfinite(ans1));
-            assert(isnan(ans2));
-            printf("%-15.10lg\n", ans1);
+            assert(isfinite(roots.ans1));
+            assert(isnan(roots.ans2));
+            printf("%-15.10lg\n", roots.ans1);
             break;
 
         case two_roots:
-            assert(isfinite(ans1));
-            assert(isfinite(ans2));
-            printf("%-15.10lg %-15.10lg\n", ans1, ans2);
+            assert(isfinite(roots.ans1));
+            assert(isfinite(roots.ans2));
+            printf("%-15.10lg %-15.10lg\n", roots.ans1, roots.ans2);
             break;
 
         case infinity_roots:
-            assert(isnan(ans1));
-            assert(isnan(ans2));
+            assert(isnan(roots.ans1));
+            assert(isnan(roots.ans2));
             printf("Infinity number of roots\n");
             break;
 
@@ -136,14 +133,14 @@ void            printRoots(NUMBER_OF_ROOTS num_of_roots, double ans1, double ans
     printf("\n");
 }
 
-int             isRootCorrect(double a, double b, double c, double root){
+int             isRootCorrect(coefficients coefficients, double root){
 
-    assert(isfinite(a));
-    assert(isfinite(b));
-    assert(isfinite(c));
+    assert(isfinite(coefficients.a));
+    assert(isfinite(coefficients.b));
+    assert(isfinite(coefficients.c));
     assert(isfinite(root));
 
-    return isZero(a * pow(root, 2) + b * root + c);
+    return isZero(coefficients.a * pow(root, 2) + coefficients.b * root + coefficients.c);
 }
 
 int             isZero(double x){
@@ -154,54 +151,55 @@ int             isZero(double x){
     return fabs(x) < EPSILON;
 }
 
-SUCCESS_RATE     testingTheSolution(double a, double b, double c, NUMBER_OF_ROOTS n_o_r, double ans1, double ans2){
+SUCCESS_RATE     testTheSolution(coefficients coefficients, roots roots){
 
-    assert(isfinite(a));
-    assert(isfinite(b));
-    assert(isfinite(c));
+    assert(isfinite(coefficients.a));
+    assert(isfinite(coefficients.b));
+    assert(isfinite(coefficients.c));
 
     double d = 0;
-    switch (n_o_r){
+
+    switch (roots.n_o_r){
         case two_roots:
-            assert(isfinite(ans1));
-            assert(isfinite(ans2));
-            if(isRootCorrect(a, b, c, ans1) && isRootCorrect(a, b, c, ans2))
+            assert(isfinite(roots.ans1));
+            assert(isfinite(roots.ans2));
+            if(isRootCorrect(coefficients, roots.ans1) && isRootCorrect(coefficients, roots.ans2))
                 return success;
             break;
         case one_root:
-            assert(isfinite(ans1));
-            assert(isnan(ans2));
-            if(isRootCorrect(a, b, c, ans1))
+            assert(isfinite(roots.ans1));
+            assert(isnan(roots.ans2));
+            if(isRootCorrect(coefficients, roots.ans1))
                 return success;
             break;
         case no_roots:
-            assert(isnan(ans1));
-            assert(isnan(ans2));
-            d = b * b - 4 * a * c;
-            if((isZero(a) && isZero(b) && (!isZero(c))) || ((!isZero(d)) && d < 0))
+            assert(isnan(roots.ans1));
+            assert(isnan(roots.ans2));
+            d = coefficients.b * coefficients.b - 4 * coefficients.a * coefficients.c;
+            if((isZero(coefficients.a) && isZero(coefficients.b) && (!isZero(coefficients.c))) || ((!isZero(d)) && d < 0))
                 return success;
             break;
         case infinity_roots:
-            assert(isnan(ans1));
-            assert(isnan(ans2));
-            if(isZero(a) && isZero(b) && isZero(c))
+            assert(isnan(roots.ans1));
+            assert(isnan(roots.ans2));
+            if(isZero(coefficients.a) && isZero(coefficients.b) && isZero(coefficients.c))
                 return success;
             break;
         default:
             assert(0 && "Incorrect number of roots");
     }
-    printCalcError(a, b, c, n_o_r, ans1, ans2);
+    printCalcError(coefficients, roots);
     return error;
 }
 
-void            printCalcError(double a, double b, double c, NUMBER_OF_ROOTS n_o_r, double ans1, double ans2){
+void            printCalcError(coefficients coefficients, roots roots){
 
-    assert(isfinite(a));
-    assert(isfinite(b));
-    assert(isfinite(c));
-    assert(isfinite(ans1));
-    assert(isfinite(ans2));
+    assert(isfinite(coefficients.a));
+    assert(isfinite(coefficients.b));
+    assert(isfinite(coefficients.c));
+    assert(isfinite(roots.ans1));
+    assert(isfinite(roots.ans2));
 
-    printf("Error during equation solving:\nCoefficients: %lg %lg %lg\nOutput:\n", a, b, c);
-    printRoots(n_o_r, ans1, ans2);
+    printf("Error during equation solving:\nCoefficients: %lg %lg %lg\nOutput:\n", coefficients.a, coefficients.b, coefficients.c);
+    printRoots(roots);
 }

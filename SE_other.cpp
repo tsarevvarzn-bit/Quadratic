@@ -1,34 +1,38 @@
-void            getRandCoefficients(double *a, double *b, double *c);
-void            clearBuf();
+void            getRandCoefficients(coefficients *coefficients);
+void            clearBuf(FILE *input);
 
-SUCCESS_RATE    intToSwitch(NUMBER_OF_ROOTS *n_o_r, int n_o_r_int);
+SUCCESS_RATE    transformIntToSwitch(NUMBER_OF_ROOTS *n_o_r, int n_o_r_int);
 
-SUCCESS_RATE    unitTest(double a, double b, double c, NUMBER_OF_ROOTS n_o_r_ref, double ans1_ref, double ans2_ref, int num_of_test);
-CODE_ERRORS     getCoeffAndAns(double *a, double *b, double *c, NUMBER_OF_ROOTS *n_o_r, double *ans1, double *ans2, FILE *input);
-CODE_ERRORS     getInputForUnitTests(FILE **input);
+SUCCESS_RATE    runOneUnitTest(coefficients coefficients, roots roots_ref, int num_of_test);
+CODE_ERRORS     getCoeffAndAns(coefficients *coefficients, roots *roots, FILE *input);
+CODE_ERRORS     getInputForRunUnitTests(FILE **input);
 
-CODE_ERRORS     getCoefficients(double *a, double *b, double *c, FILE *input);
+CODE_ERRORS     getCoefficients(coefficients *coefficients, FILE *input);
 CODE_ERRORS     enterFileName(FILE **input_file);
 
-int isYes();
+int             checkingTerminalForYes();
+int             getSeed();
+CODE_ERRORS     checkInputOnEnter(FILE *input);
 
 
-void            getRandCoefficients(double *a, double *b, double *c){
-    assert(a != NULL);
-    assert(b != NULL);
-    assert(c != NULL);
 
-    *a = rand()%2001 - 1000;
-    *b = rand()%2001 - 1000;
-    *c = rand()%2001 - 1000;
+void            getRandCoefficients(coefficients *coefficients){
+
+    assert(coefficients != NULL);
+
+    coefficients->a = rand()%2001 - 1000;
+    coefficients->b = rand()%2001 - 1000;
+    coefficients->c = rand()%2001 - 1000;
 }
 
-void            clearBuf(){
+void            clearBuf(FILE *input){
+
     int c = 0;
-    while(((c = getc(stdin)) != EOF) && (c != '\n'));
+    while(((c = getc(input)) != EOF) && (c != '\n'));
 }
 
-SUCCESS_RATE    intToSwitch(NUMBER_OF_ROOTS *n_o_r, int n_o_r_int){
+SUCCESS_RATE    transformIntToSwitch(NUMBER_OF_ROOTS *n_o_r, int n_o_r_int){
+
     switch(n_o_r_int){
         case 0:
             *n_o_r = no_roots;
@@ -48,60 +52,59 @@ SUCCESS_RATE    intToSwitch(NUMBER_OF_ROOTS *n_o_r, int n_o_r_int){
     return success;
 }
 
-CODE_ERRORS     getCoefficients(double *a, double *b, double *c, FILE *input){
+CODE_ERRORS     getCoefficients(coefficients *coefficients, FILE *input){
 
     assert(input != NULL);
-    assert(a != NULL);
-    assert(b != NULL);
-    assert(c != NULL);
+    assert(coefficients != NULL);
 
-    int x = 0;
-    if(((x = fscanf(input, "%lf %lf %lf", a, b, c)) == 3) && ((getc(input) == '\n') || (getc(input) == EOF))){
-        return correct;
-    }else{
-        if(getc(input) == EOF){
-            return end_of_file;
+
+    coefficients->a = coefficients->b = coefficients->c = 0;
+
+    if(fscanf(input, "%lf %lf %lf", &(coefficients->a), &(coefficients->b), &(coefficients->c)) == 3){
+        if(isfinite(coefficients->a) && isfinite(coefficients->b) && isfinite(coefficients->c)){
+            return checkInputOnEnter(input);
         }else{
-            return incorrect_data_format;
+            return not_a_finite_number_in_the_input;
         }
+    }else{
+        return checkInputOnEnter(input);
     }
 }
 
-CODE_ERRORS     getCoeffAndAns(double *a, double *b, double *c, NUMBER_OF_ROOTS *n_o_r, double *ans1, double *ans2, FILE *input){
+CODE_ERRORS     getCoeffAndAns(coefficients *coefficients, roots *roots, FILE *input){
 
     assert(input != NULL);
-    assert(a != NULL);
-    assert(b != NULL);
-    assert(c != NULL);
-    assert(ans1 != NULL);
-    assert(ans2 != NULL);
+    assert(coefficients != NULL);
 
-    int number_of_accepted_arguments = 0;
+    assert(roots != NULL);
+
+    coefficients->a = coefficients->b = coefficients->c = roots->ans1 = roots->ans2 = 0;
     int n_o_r_int = -1;
-    if((number_of_accepted_arguments = fscanf(input, "%lf %lf %lf %d %lf %lf", a, b, c, &n_o_r_int, ans1, ans2)) == 6 && (getc(input) == '\n' || getc(input) == EOF)){
-        if(intToSwitch(n_o_r, n_o_r_int) == error)
-            return incorrect_data_format;
-        return correct;
-    }else{
-        if(getc(input) == EOF){
-            return end_of_file;
+
+    if(fscanf(input, "%lf %lf %lf %d %lf %lf", &(coefficients->a), &(coefficients->b), &(coefficients->c), &n_o_r_int, &(roots->ans1), &(roots->ans2))== 6){
+        if(isfinite(coefficients->a) && isfinite(coefficients->a) && isfinite(coefficients->a) && isfinite(roots->ans1) && isfinite(roots->ans2)){
+            if(transformIntToSwitch(&(roots->n_o_r), n_o_r_int) == error)
+                return incorrect_number_of_roots;
+            return checkInputOnEnter(input);
         }else{
-            return incorrect_data_format;
+            return not_a_finite_number_in_the_input;
         }
+    }else{
+        return checkInputOnEnter(input);
     }
 }
 
-CODE_ERRORS     getInputForUnitTests(FILE **input){
+CODE_ERRORS     getInputForRunUnitTests(FILE **input){
 
     assert(input);
-    assert(*input);
 
     printf("Do you want read tests from file or enter tests from CMD? f/c:");
     int s = getchar();
+    clearBuf(stdin);
     while(s != 'f' && s != 'c'){
-        clearBuf();
         printf("\nOutput is wrong, please enter f/c:");
         s = getchar();
+        clearBuf(stdin);
     }
     printf("\n");
     *input = stdin;
@@ -113,62 +116,56 @@ CODE_ERRORS     getInputForUnitTests(FILE **input){
     return correct;
 }
 
-SUCCESS_RATE    unitTest(double a, double b, double c, NUMBER_OF_ROOTS n_o_r_ref, double ans1_ref, double ans2_ref, int num_of_test){
+SUCCESS_RATE    runOneUnitTest(coefficients coefficients, roots roots_ref, int num_of_test){
 
-    assert(isfinite(a));
-    assert(isfinite(b));
-    assert(isfinite(c));
-    assert(isfinite(ans1_ref));
-    assert(isfinite(ans2_ref));
-    assert(isfinite(c));
-    assert(!isnan(a));
-    assert(!isnan(b));
-    assert(!isnan(c));
-    assert(!isnan(ans1_ref));
-    assert(!isnan(ans2_ref));
-    assert(!isnan(c));
+    assert(isfinite(coefficients.a));
+    assert(isfinite(coefficients.b));
+    assert(isfinite(coefficients.c));
+    assert(isfinite(roots_ref.ans1));
+    assert(isfinite(roots_ref.ans2));
     assert(num_of_test > 0);
 
-    double ans1 = 0, ans2 = 0;
-    NUMBER_OF_ROOTS n_o_r = solveSquareEq(a, b, c, &ans1, &ans2);
-    if(n_o_r == n_o_r_ref){
-        switch(n_o_r){
+    roots roots = {};
+    roots.n_o_r = solveSquareEquation(coefficients, &(roots.ans1), &(roots.ans2));
+    if(roots.n_o_r == roots_ref.n_o_r){
+        switch(roots.n_o_r){
             case no_roots:
                 return success;
+
             case infinity_roots:
                 return success;
+
             case one_root:
-                if(isZero(ans1-ans1_ref) || isZero(ans2-ans1_ref))
+                if(isZero(roots.ans1 - roots_ref.ans1) || isZero(roots.ans2 - roots_ref.ans1))
                     return success;
                 break;
+
             case two_roots:
-                if((isZero(ans1-ans1_ref) && isZero(ans2-ans2_ref))||(isZero(ans1-ans2_ref) && isZero(ans2-ans1_ref)))
+                if((isZero(roots.ans1 - roots_ref.ans1) && isZero(roots.ans2 - roots_ref.ans1))||(isZero(roots.ans1 - roots_ref.ans2) && isZero(roots.ans2 - roots_ref.ans1)))
                     return success;
                 break;
+
             default:
                 assert(0 && "Incorrect number of roots");
         }
     }
     printf("Test %d FAILED: a = %lg b = %lg c = %lg\n"
           "expected:    %d roots, x1 = %lg, x2 = %lg\n"
-          "got:         %d roots, x1 = %lg, x2 = %lg\n\n", num_of_test, a, b, c, n_o_r_ref, ans1_ref, ans2_ref, n_o_r, ans1, ans2);
+          "got:         %d roots, x1 = %lg, x2 = %lg\n\n", num_of_test, coefficients.a, coefficients.b, coefficients.c, roots_ref.n_o_r, roots_ref.ans1, roots_ref.ans2, roots.n_o_r, roots.ans1, roots.ans2);
     return error;
 }
 
 CODE_ERRORS     enterFileName(FILE **input_file){
 
     assert(input_file);
-    assert(*input_file);
 
-    if(input_file == NULL || *input_file == NULL)
-        assert(0 && "Incorrect input file");
     char file_name[WORD_LEN] = {};
     printf("Enter file name: ");
-    int n = 0;
-    scanf("%s%n", file_name, &n); // TODO too long file name but no security  // use another func from std
-    if(n >= WORD_LEN){
+    fgets(file_name, WORD_LEN, stdin);//Безопасный ввод с ограничением длины
+    if(!strchr(file_name, '\n')){
         return long_file_name;
     }
+    file_name[strcspn(file_name, "\n")] = '\0';
     *input_file = fopen(file_name, "r");
     if(*input_file == NULL){
         return incorrect_file_name;
@@ -177,10 +174,11 @@ CODE_ERRORS     enterFileName(FILE **input_file){
     return correct;
 }
 
-int isYes(){
+int             checkingTerminalForYes(){
+
     int c = getchar();
     while((c = getchar()) != 'Y' && c != 'N' && c != 'y' && c != 'n'){
-        clearBuf();
+        clearBuf(stdin);
         printf("\nIncorrect input, enter Y/N:");
     }
     if(c == 'N' || c == 'n')
@@ -188,3 +186,40 @@ int isYes(){
     return 1;
 }
 
+CODE_ERRORS     checkInputOnEnter(FILE *input){
+
+    int c = 0;
+    while(((c = getc(input)) != '\n') && isspace(c));
+
+    if(c == '\n'){
+        //printf("checkInputOnEnter return correct");
+        return correct;
+    }else if(c == EOF){
+        //printf("checkInputOnEnter return end_of_file");
+        return end_of_file;
+    }else{
+        clearBuf(input);
+        //printf("checkInputOnEnter return incorrect_data_format");
+        return incorrect_data_format;
+    }
+}
+
+int             getSeed(){
+
+    int seed = 0;
+    printf("Do you want to use random seed? Y/N:");
+    if(checkingTerminalForYes()){
+        time_t mytime = time(NULL);//Берет текущее время
+        struct tm *now = localtime(&mytime);//Получаем данные в виде структуры
+        seed = now->tm_sec;
+        printf("\nSeed of this generation: %d\n\n", seed);
+    }else{
+        printf("Enter seed:");
+        while((scanf("%d", &seed) != 1)){
+            clearBuf(stdin);
+            printf("\nIncorrect input, enter correct number:");
+        }
+        printf("\n");
+    }
+    return seed;
+}
