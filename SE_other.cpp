@@ -146,7 +146,7 @@ SUCCESS_RATE    runOneUnitTest(coefficients coefficients, roots roots_ref, int n
                 break;
 
             default:
-                assert(0 && "Incorrect number of roots");
+                ERROR_MASSAGE("Incorrect number of roots");
         }
     }
     printf("Test %d FAILED: a = %lg b = %lg c = %lg\n"

@@ -28,7 +28,7 @@ void            solveAndPrint(coefficients coefficients){
         case error:
             break;
         default:
-            assert(0 && "Incorrect calc error");
+            ERROR_MASSAGE("Incorrect calc error");
     }
 }
 
@@ -127,7 +127,7 @@ void            printRoots(roots roots){
             break;
 
         default:
-            assert(0 && "Incorrect number of roots");
+            ERROR_MASSAGE("Incorrect number of roots");
 
     }
     printf("\n");
@@ -186,7 +186,7 @@ SUCCESS_RATE     testTheSolution(coefficients coefficients, roots roots){
                 return success;
             break;
         default:
-            assert(0 && "Incorrect number of roots");
+            ERROR_MASSAGE("Incorrect number of roots");
     }
     printCalcError(coefficients, roots);
     return error;

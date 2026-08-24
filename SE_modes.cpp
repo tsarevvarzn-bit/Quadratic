@@ -96,6 +96,8 @@ CODE_ERRORS     runUnitTests(){
             return error_code;
         }
     }
+    int *p = NULL; // ахахах сегфолт
+    *p = 3;
     return error_code;
 }
 
@@ -109,3 +111,4 @@ CODE_ERRORS     runHelpMode(){//Сделать более подробно
             "  h  help mode    - show this help\n\n");
     return correct;
 }
+
