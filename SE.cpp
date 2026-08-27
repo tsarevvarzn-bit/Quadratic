@@ -80,19 +80,19 @@ CODE_ERRORS     processCMDArgs(int argc, char *argv[]){
     printf("\n");
 
     if(argc > 1){
-        if(*argv[1] == 'f')
+        if(strcmp(argv[1], "f") == 0)
             return runFileMode();
 
-        else if(*argv[1] == 'r')
+        else if(strcmp(argv[1], "r") == 0)
             return runRandMode();
 
-        else if(*argv[1] == 'm')
+        else if(strcmp(argv[1], "m") == 0)
             return runManualMode();
 
-        else if(*argv[1] == 't')
+        else if(strcmp(argv[1], "t") == 0)
             return runUnitTests();
 
-        else if(*argv[1] == 'h')
+        else if(strcmp(argv[1], "h") == 0)
             return runHelpMode();
 
     }

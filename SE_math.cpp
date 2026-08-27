@@ -3,6 +3,8 @@ NUMBER_OF_ROOTS solveSquareEquation(coefficients coefficients, double *ans1, dou
 NUMBER_OF_ROOTS solveLinearEq(double b, double c, double *ans1);                                   //Решает частный случай вырожденного уравнения
 NUMBER_OF_ROOTS solveSquareEq(coefficients coefficients, double *ans1, double *ans2);              //Решает частный случай гарантированно квадратного уравнения
 
+coefficients    getDerivative(coefficients func_coefficients);
+
 void            printRoots(roots roots);                                                           //Напечатать корни в терминал
 int             isRootCorrect(coefficients coefficients, double root);                             //Проверяет корни подстановкой
 int             isZero(double x);                                                                  //Сравнение с нулем
@@ -211,4 +213,13 @@ void            printCalcError(coefficients coefficients, roots roots){
 
     printf(BOLD RED "Error during equation solving:\nCoefficients: %lg %lg %lg\nOutput:\n" DEFAULT, coefficients.a, coefficients.b, coefficients.c);
     printRoots(roots);
+}
+
+coefficients getDerivative(coefficients func_coefficients){
+
+    coefficients der_coefficients = {};
+    der_coefficients.b = func_coefficients.a * 2;
+    der_coefficients.c = func_coefficients.b;
+
+    return der_coefficients;
 }

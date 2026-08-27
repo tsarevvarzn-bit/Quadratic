@@ -3,6 +3,7 @@ int             checkTerminalForYes();
 unsigned int    getSeed();
 CODE_ERRORS     checkInputOnEnter(FILE *input);
 SUCCESS_RATE    transformIntToSwitch(NUMBER_OF_ROOTS *n_o_r, int n_o_r_int);
+int             isRootsCorrect(roots roots);
 
 void            getRandCoefficients(coefficients *coefficients);
 CODE_ERRORS     getCoefficients(coefficients *coefficients, FILE *input);
@@ -89,7 +90,7 @@ CODE_ERRORS     getCoeffAndAns(testCase *testCase, FILE *input){
     if(fscanf(input, "%lf %lf %lf %d %lf %lf", &(testCase->coefficients.a), &(testCase->coefficients.b), &(testCase->coefficients.c), &n_o_r_int, &(testCase->roots.ans1), &(testCase->roots.ans2))
         == 6){
 
-        if(isfinite(testCase->coefficients.a) && isfinite(testCase->coefficients.b) && isfinite(testCase->coefficients.c) && isfinite(testCase->roots.ans1) && isfinite(testCase->roots.ans2)){
+        if(isRootsCorrect(testCase->roots)){
 
             if(transformIntToSwitch(&(testCase->roots.n_o_r), n_o_r_int) == error)
                 return incorrect_number_of_roots;
@@ -139,8 +140,7 @@ SUCCESS_RATE    runOneUnitTest(testCase testCase, int num_of_test){
     assert(isfinite(testCase.coefficients.a));
     assert(isfinite(testCase.coefficients.b));
     assert(isfinite(testCase.coefficients.c));
-    assert(isfinite(testCase.roots.ans1));
-    assert(isfinite(testCase.roots.ans2));
+    assert(isRootsCorrect(testCase.roots));
 
     assert(num_of_test > 0);
 
@@ -213,7 +213,7 @@ int             checkTerminalForYes(){
         printf(BOLD RED "\nIncorrect input" YELLOW ", enter Y/N:" DEFAULT);
         c = getchar();
     }
-
+    clearBuf(stdin);
     if(c == 'N' || c == 'n')
         return 0;
     return 1;
@@ -315,13 +315,33 @@ void            printUnitTestResult(SUCCESS_RATE s_r, testCase testCase, roots r
     assert(num_of_test > 0);
 
     if(s_r == success){
-        printf(GREEN "Test %d CORRECT\n\n" DEFAULT, num_of_test);
+        printf(BOLD GREEN "Test %d CORRECT: a = %lg b = %lg c = %lg\n"
+                          "Output:    %d roots, x1 = %lg, x2 = %lg\n" DEFAULT,
+                        num_of_test, testCase.coefficients.a, testCase.coefficients.b, testCase.coefficients.c,
+                                    testCase.roots.n_o_r,    testCase.roots.ans1,     testCase.roots.ans2);
     }else{
-        printf(BOLD RED "Test %d FAILED: a = %lg b = %lg c = %lg\n"
-            "expected:    %d roots, x1 = %lg, x2 = %lg\n"
-            "got:         %d roots, x1 = %lg, x2 = %lg\n\n" DEFAULT,
-            num_of_test, testCase.coefficients.a, testCase.coefficients.b, testCase.coefficients.c,
-                         testCase.roots.n_o_r,    testCase.roots.ans1,     testCase.roots.ans2,
-                         roots.n_o_r,             roots.ans1,              roots.ans2);
+        printf(BOLD RED   "Test %d FAILED: a = %lg b = %lg c = %lg\n"
+                          "Expected:    %d roots, x1 = %lg, x2 = %lg\n"
+                          "Got:         %d roots, x1 = %lg, x2 = %lg\n\n" DEFAULT,
+                        num_of_test, testCase.coefficients.a, testCase.coefficients.b, testCase.coefficients.c,
+                                    testCase.roots.n_o_r,    testCase.roots.ans1,     testCase.roots.ans2,
+                                    roots.n_o_r,             roots.ans1,              roots.ans2);
     }
+}
+
+int isRootsCorrect(roots roots){
+
+    switch(roots.n_o_r){
+        case no_roots:
+            return 1;
+        case one_root:
+            return isfinite(roots.ans1) ? 1 : 0;
+        case two_roots:
+            return (isfinite(roots.ans1) && isfinite(roots.ans2)) ? 1 : 0;
+        case infinity_roots:
+            return 1;
+        default:
+            ERROR_MASSAGE("Incorrect number of roots");
+    }
+
 }
