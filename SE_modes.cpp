@@ -16,8 +16,10 @@ CODE_ERRORS     runRandMode(){
     if(n > MAXIMUM_NUMBER_OF_RANDOM_EQUATIONS){
 
         printf(YELLOW "Are you sure you want to generate so many equations? Y/N: " DEFAULT);
-        if(!checkTerminalForYes())
+        if(!checkTerminalForYes()){
+            printf("\n");
             return correct;
+        }
         printf("\n");
     }
 
@@ -46,6 +48,7 @@ CODE_ERRORS     runManualMode(){
 
             //exploreTheFunction(); Математическое исследование функции с построением графика
             solveAndPrint(coefficients);
+
             printf(YELLOW "Do you want to continue? Y/N:" DEFAULT);
 
             if(checkTerminalForYes()){
@@ -100,33 +103,14 @@ CODE_ERRORS     runUnitTests(){
     if((error_code = getInputForRunUnitTests(&input, &isIntegratedTests)) != correct)
         return error_code;
 
-    coefficients coefficients = {};
-    roots roots = {};
-    int num_of_test = 1;
+    if(isIntegratedTests){
+        return runIntegratedTests();
 
-    while((error_code = getCoeffAndAns(&coefficients, &roots, input, isIntegratedTests, num_of_test)) != end_of_file){
+    }else{
+        return runUsersTests(input);
 
-        if(error_code == correct){
-
-            if(runOneUnitTest(coefficients, roots, num_of_test) == success)
-                printf(GREEN "Test %d CORRECT\n\n" DEFAULT, num_of_test);
-            num_of_test++;
-
-        }else if(error_code == incorrect_data_format){
-            if(input != stdin)
-                num_of_test++;
-
-            printf(BOLD RED "Incorrect input" YELLOW ", try again\n\n" DEFAULT);
-
-        }else if(error_code == incorrect_number_of_roots){
-            printf(BOLD RED "Incorrect input" YELLOW ", print number of roots: 0 <= x <= 3\n\n" DEFAULT);
-
-        }else{
-            return error_code;
-        }
     }
 
-    return error_code;
 }
 
 CODE_ERRORS     runHelpMode(){
@@ -174,6 +158,7 @@ CODE_ERRORS     runHelpMode(){
     printf("\n");
 
     printf(BOLD CYAN "Good luck solving quadratic equations! Remember: the equation is solved by a neural network, it can sometimes make mistakes\n\n" DEFAULT);
+
     return correct;
 }
 

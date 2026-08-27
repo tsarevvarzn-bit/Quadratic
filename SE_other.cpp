@@ -1,30 +1,22 @@
-void            getRandCoefficients(coefficients *coefficients);
 void            clearBuf(FILE *input);
-
-SUCCESS_RATE    transformIntToSwitch(NUMBER_OF_ROOTS *n_o_r, int n_o_r_int);
-
-SUCCESS_RATE    runOneUnitTest(coefficients coefficients, roots roots_ref, int num_of_test);
-CODE_ERRORS     getCoeffAndAns(coefficients *coefficients, roots *roots, FILE *input, int isIntegratedTests, int num_of_test);
-CODE_ERRORS     getInputForRunUnitTests(FILE **input, int *isIntegratedTests);
-
-CODE_ERRORS     getCoefficients(coefficients *coefficients, FILE *input);
-CODE_ERRORS     enterFileName(FILE **input_file);
-
 int             checkTerminalForYes();
 unsigned int    getSeed();
 CODE_ERRORS     checkInputOnEnter(FILE *input);
+SUCCESS_RATE    transformIntToSwitch(NUMBER_OF_ROOTS *n_o_r, int n_o_r_int);
 
-testCase integratedTests[] =
-{
-    {{.a = 0, .b = 0  , .c = 0   }, {.n_o_r = infinity_roots, .ans1 = 0     , .ans2 = 0     }},
-    {{.a = 0, .b = 0  , .c = 1   }, {.n_o_r = no_roots      , .ans1 = 0     , .ans2 = 0     }},
-    {{.a = 1, .b = -6 , .c = 9   }, {.n_o_r = one_root      , .ans1 = 3     , .ans2 = 0     }},
-    {{.a = 1, .b = 1  , .c = 1   }, {.n_o_r = no_roots      , .ans1 = 0     , .ans2 = 0     }},
-    {{.a = 1, .b = -5 , .c = 3   }, {.n_o_r = two_roots     , .ans1 = 0.6972, .ans2 = 4.3027}},
-    {{.a = 1, .b = 0.2, .c = 0.01}, {.n_o_r = one_root      , .ans1 = -0.1  , .ans2 = 0     }},
-    {{.a = 0, .b = -6 , .c = 9   }, {.n_o_r = one_root      , .ans1 = 1.5   , .ans2 = 0     }},
-    {{.a = 0, .b = -6 , .c = 0   }, {.n_o_r = one_root      , .ans1 = 0     , .ans2 = 0     }},
-};
+void            getRandCoefficients(coefficients *coefficients);
+CODE_ERRORS     getCoefficients(coefficients *coefficients, FILE *input);
+CODE_ERRORS     getCoeffAndAns(testCase *testCase, FILE *input);
+
+CODE_ERRORS     enterFileName(FILE **input_file);
+CODE_ERRORS     getInputForRunUnitTests(FILE **input, int *isIntegratedTests);
+
+SUCCESS_RATE    runOneUnitTest(testCase testCase, int num_of_test);
+CODE_ERRORS     runIntegratedTests();
+CODE_ERRORS     runUsersTests(FILE *input);
+void            printUnitTestResult(SUCCESS_RATE s_r, testCase testCase, roots roots, int num_of_test);
+
+
 
 void            getRandCoefficients(coefficients *coefficients){
 
@@ -71,6 +63,7 @@ CODE_ERRORS     getCoefficients(coefficients *coefficients, FILE *input){
     coefficients->a = coefficients->b = coefficients->c = 0;
 
     if(fscanf(input, "%lf %lf %lf", &(coefficients->a), &(coefficients->b), &(coefficients->c)) == 3){
+
         if(isfinite(coefficients->a) && isfinite(coefficients->b) && isfinite(coefficients->c)){
             return checkInputOnEnter(input);
         }else{
@@ -81,44 +74,34 @@ CODE_ERRORS     getCoefficients(coefficients *coefficients, FILE *input){
     }
 }
 
-CODE_ERRORS     getCoeffAndAns(coefficients *coefficients, roots *roots, FILE *input, int isIntegratedTests, int num_of_test){
+CODE_ERRORS     getCoeffAndAns(testCase *testCase, FILE *input){
 
     assert(input != NULL);
-    assert(coefficients != NULL);
+    assert(testCase != NULL);
 
-    assert(roots != NULL);
-    assert(isIntegratedTests == 0 || isIntegratedTests == 1);
-    assert(num_of_test > 0);
+    testCase->coefficients.a = testCase->coefficients.b = testCase->coefficients.c = testCase->roots.ans1 = testCase->roots.ans2 = 0;
 
-    coefficients->a = coefficients->b = coefficients->c = roots->ans1 = roots->ans2 = 0;
     int n_o_r_int = -1;
 
-    if(isIntegratedTests){
-        if((int)(sizeof(integratedTests)/sizeof(integratedTests)[0]) >= num_of_test){
-            *coefficients = integratedTests[num_of_test-1].coefficients;
-            *roots = integratedTests[num_of_test-1].roots;
-            return correct;
-        }else
-            return end_of_file;
+    if(input == stdin)
+        printf(YELLOW "Print coefficients and answer in one line:" DEFAULT " a b c number_of_roots root1 root2\n");
 
-    }else{
-        if(input == stdin)
-            printf(YELLOW "Print coefficients and answer in one line:" DEFAULT " a b c number_of_roots root1 root2\n");
-        if(fscanf(input, "%lf %lf %lf %d %lf %lf", &(coefficients->a), &(coefficients->b), &(coefficients->c), &n_o_r_int, &(roots->ans1), &(roots->ans2))== 6){
+    if(fscanf(input, "%lf %lf %lf %d %lf %lf", &(testCase->coefficients.a), &(testCase->coefficients.b), &(testCase->coefficients.c), &n_o_r_int, &(testCase->roots.ans1), &(testCase->roots.ans2))== 6){
 
-            if(isfinite(coefficients->a) && isfinite(coefficients->a) && isfinite(coefficients->a) && isfinite(roots->ans1) && isfinite(roots->ans2)){
+        if(isfinite(testCase->coefficients.a) && isfinite(testCase->coefficients.b) && isfinite(testCase->coefficients.c) && isfinite(testCase->roots.ans1) && isfinite(testCase->roots.ans2)){
 
-                if(transformIntToSwitch(&(roots->n_o_r), n_o_r_int) == error)
-                    return incorrect_number_of_roots;
-                return checkInputOnEnter(input);
+            if(transformIntToSwitch(&(testCase->roots.n_o_r), n_o_r_int) == error)
+                return incorrect_number_of_roots;
 
-            }else{
-                return not_a_finite_number_in_the_input;
-            }
-        }else{
             return checkInputOnEnter(input);
+
+        }else{
+            return not_a_finite_number_in_the_input;
         }
+    }else{
+        return checkInputOnEnter(input);
     }
+
 }
 
 CODE_ERRORS     getInputForRunUnitTests(FILE **input, int *isPreInstalled){
@@ -150,35 +133,39 @@ CODE_ERRORS     getInputForRunUnitTests(FILE **input, int *isPreInstalled){
     return correct;
 }
 
-SUCCESS_RATE    runOneUnitTest(coefficients coefficients, roots roots_ref, int num_of_test){
+SUCCESS_RATE    runOneUnitTest(testCase testCase, int num_of_test){
 
-    assert(isfinite(coefficients.a));
-    assert(isfinite(coefficients.b));
-    assert(isfinite(coefficients.c));
-    assert(isfinite(roots_ref.ans1));
-    assert(isfinite(roots_ref.ans2));
+    assert(isfinite(testCase.coefficients.a));
+    assert(isfinite(testCase.coefficients.b));
+    assert(isfinite(testCase.coefficients.c));
+    assert(isfinite(testCase.roots.ans1));
+    assert(isfinite(testCase.roots.ans2));
+
     assert(num_of_test > 0);
 
-    roots roots = {};
-    roots.n_o_r = solveSquareEquation(coefficients, &(roots.ans1), &(roots.ans2));
+    roots roots = {}; //Корни, которые выдаст программа
+    roots.n_o_r = solveSquareEquation(testCase.coefficients, &(roots.ans1), &(roots.ans2));
+    SUCCESS_RATE s_r = error;
 
-    if(roots.n_o_r == roots_ref.n_o_r){
+    if(roots.n_o_r == testCase.roots.n_o_r){
 
         switch(roots.n_o_r){
             case no_roots:
-                return success;
+                s_r = success;
+                break;
 
             case infinity_roots:
-                return success;
+                s_r = success;
+                break;
 
             case one_root:
-                if(isZero(roots.ans1 - roots_ref.ans1) || isZero(roots.ans1 - roots_ref.ans2))
-                    return success;
+                if(isZero(roots.ans1 - testCase.roots.ans1) || isZero(roots.ans1 - testCase.roots.ans2))
+                    s_r = success;
                 break;
 
             case two_roots:
-                if((isZero(roots.ans1 - roots_ref.ans1) && isZero(roots.ans2 - roots_ref.ans2)) || (isZero(roots.ans1 - roots_ref.ans2) && isZero(roots.ans2 - roots_ref.ans1)))
-                    return success;
+                if((isZero(roots.ans1 - testCase.roots.ans1) && isZero(roots.ans2 - testCase.roots.ans2)) || (isZero(roots.ans1 - testCase.roots.ans2) && isZero(roots.ans2 - testCase.roots.ans1)))
+                    s_r = success;
                 break;
 
             default:
@@ -186,10 +173,9 @@ SUCCESS_RATE    runOneUnitTest(coefficients coefficients, roots roots_ref, int n
         }
     }
 
-    printf(BOLD RED"Test %d FAILED: a = %lg b = %lg c = %lg\n"
-          "expected:    %d roots, x1 = %lg, x2 = %lg\n"
-          "got:         %d roots, x1 = %lg, x2 = %lg\n\n" DEFAULT, num_of_test, coefficients.a, coefficients.b, coefficients.c, roots_ref.n_o_r, roots_ref.ans1, roots_ref.ans2, roots.n_o_r, roots.ans1, roots.ans2);
-    return error;
+    printUnitTestResult(s_r, testCase, roots, num_of_test);
+
+    return s_r;
 }
 
 CODE_ERRORS     enterFileName(FILE **input_file){
@@ -199,6 +185,7 @@ CODE_ERRORS     enterFileName(FILE **input_file){
     char file_name[WORD_LEN] = {};
     printf(YELLOW "Enter file name: " DEFAULT);
     fgets(file_name, WORD_LEN, stdin);//Безопасный ввод с ограничением длины
+
     if(!strchr(file_name, '\n')){
         return long_file_name;
     }
@@ -225,6 +212,7 @@ int             checkTerminalForYes(){
         printf(BOLD RED "\nIncorrect input" YELLOW ", enter Y/N:" DEFAULT);
         c = getchar();
     }
+
     if(c == 'N' || c == 'n')
         return 0;
     return 1;
@@ -245,7 +233,7 @@ CODE_ERRORS     checkInputOnEnter(FILE *input){
     }
 }
 
-unsigned int         getSeed(){
+unsigned int    getSeed(){
 
     int seed = 0;
 
@@ -257,6 +245,7 @@ unsigned int         getSeed(){
         printf(YELLOW "\nSeed of this generation: %u\n\n" DEFAULT, seed);
 
     }else{
+
         printf("\n");
         printf(YELLOW "Enter seed:" DEFAULT);
         while((scanf("%d", &seed) != 1) ){
@@ -266,4 +255,72 @@ unsigned int         getSeed(){
         printf("\n");
     }
     return seed;
+}
+
+CODE_ERRORS      runIntegratedTests(){
+
+    testCase integratedTests[] =
+    {
+        {{.a = 0, .b = 0  , .c = 0   }, {.n_o_r = infinity_roots, .ans1 = 0     , .ans2 = 0     }},
+        {{.a = 0, .b = 0  , .c = 1   }, {.n_o_r = no_roots      , .ans1 = 0     , .ans2 = 0     }},
+        {{.a = 1, .b = -6 , .c = 9   }, {.n_o_r = one_root      , .ans1 = 3     , .ans2 = 0     }},
+        {{.a = 1, .b = 1  , .c = 1   }, {.n_o_r = no_roots      , .ans1 = 0     , .ans2 = 0     }},
+        {{.a = 1, .b = -5 , .c = 3   }, {.n_o_r = two_roots     , .ans1 = 0.6972, .ans2 = 4.3027}},
+        {{.a = 1, .b = 0.2, .c = 0.01}, {.n_o_r = one_root      , .ans1 = -0.1  , .ans2 = 0     }},
+        {{.a = 0, .b = -6 , .c = 9   }, {.n_o_r = one_root      , .ans1 = 1.5   , .ans2 = 0     }},
+        {{.a = 0, .b = -6 , .c = 0   }, {.n_o_r = one_root      , .ans1 = 0     , .ans2 = 0     }},
+    };
+
+    int num_of_tests = (int)(sizeof(integratedTests)/sizeof(integratedTests)[0]);
+
+    for(int num_of_test = 1; num_of_test <= num_of_tests; num_of_test++){
+        runOneUnitTest(integratedTests[num_of_test-1], num_of_test);
+    }
+
+    return end_of_file;
+
+}
+
+CODE_ERRORS      runUsersTests(FILE *input){
+
+    testCase testCase = {};
+    int num_of_test = 1;
+    CODE_ERRORS error_code = correct;
+
+    while((error_code = getCoeffAndAns(&testCase, input)) != end_of_file){
+
+        if(error_code == correct){
+            runOneUnitTest(testCase, num_of_test);
+            num_of_test++;
+
+        }else if(error_code == incorrect_data_format){
+            if(input != stdin)
+                num_of_test++;
+
+            printf(BOLD RED "Incorrect input" YELLOW ", try again\n\n" DEFAULT);
+
+        }else if(error_code == incorrect_number_of_roots){
+            printf(BOLD RED "Incorrect input" YELLOW ", print number of roots: 0 <= x <= 3\n\n" DEFAULT);
+
+        }else{
+            return error_code;
+        }
+    }
+    return error_code;
+}
+
+void            printUnitTestResult(SUCCESS_RATE s_r, testCase testCase, roots roots, int num_of_test){
+
+    assert(num_of_test > 0);
+
+    if(s_r == success){
+        printf(GREEN "Test %d CORRECT\n\n" DEFAULT, num_of_test);
+    }else{
+        printf(BOLD RED "Test %d FAILED: a = %lg b = %lg c = %lg\n"
+            "expected:    %d roots, x1 = %lg, x2 = %lg\n"
+            "got:         %d roots, x1 = %lg, x2 = %lg\n\n" DEFAULT,
+            num_of_test, testCase.coefficients.a, testCase.coefficients.b, testCase.coefficients.c,
+                         testCase.roots.n_o_r,    testCase.roots.ans1,     testCase.roots.ans2,
+                         roots.n_o_r,             roots.ans1,              roots.ans2);
+    }
 }
