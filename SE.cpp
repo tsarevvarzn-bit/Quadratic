@@ -57,6 +57,7 @@ struct testCase       {
 
 #include "SE_colors.cpp"
 #include "SE_math.cpp"
+#include "SE_explore.cpp"
 #include "SE_other.cpp"
 #include "SE_modes.cpp"
 

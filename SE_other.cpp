@@ -86,7 +86,8 @@ CODE_ERRORS     getCoeffAndAns(testCase *testCase, FILE *input){
     if(input == stdin)
         printf(YELLOW "Print coefficients and answer in one line:" DEFAULT " a b c number_of_roots root1 root2\n");
 
-    if(fscanf(input, "%lf %lf %lf %d %lf %lf", &(testCase->coefficients.a), &(testCase->coefficients.b), &(testCase->coefficients.c), &n_o_r_int, &(testCase->roots.ans1), &(testCase->roots.ans2))== 6){
+    if(fscanf(input, "%lf %lf %lf %d %lf %lf", &(testCase->coefficients.a), &(testCase->coefficients.b), &(testCase->coefficients.c), &n_o_r_int, &(testCase->roots.ans1), &(testCase->roots.ans2))
+        == 6){
 
         if(isfinite(testCase->coefficients.a) && isfinite(testCase->coefficients.b) && isfinite(testCase->coefficients.c) && isfinite(testCase->roots.ans1) && isfinite(testCase->roots.ans2)){
 
@@ -186,7 +187,7 @@ CODE_ERRORS     enterFileName(FILE **input_file){
     printf(YELLOW "Enter file name: " DEFAULT);
     fgets(file_name, WORD_LEN, stdin);//Безопасный ввод с ограничением длины
 
-    if(!strchr(file_name, '\n')){
+    if( !strchr(file_name, '\n')){
         return long_file_name;
     }
 

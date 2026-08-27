@@ -45,9 +45,7 @@ CODE_ERRORS     runManualMode(){
     while((error_code = getCoefficients(&coefficients, stdin)) != end_of_file){
 
         if(error_code == correct){
-
-            //exploreTheFunction(); Математическое исследование функции с построением графика
-            solveAndPrint(coefficients);
+            exploreFunction(coefficients, stdout);//Математическое исследование функции с (пока без) построением графика
 
             printf(YELLOW "Do you want to continue? Y/N:" DEFAULT);
 
