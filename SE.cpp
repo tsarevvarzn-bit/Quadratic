@@ -1,3 +1,5 @@
+/// @file
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -6,63 +8,14 @@
 #include <time.h>
 #include <ctype.h>
 
-#define ERROR_MASSAGE(str)      printf("\nERROR MASSAGE: %s, file %s, function: %s, line %d", str, __FILE__, __func__, __LINE__); \
-                                abort()
+#include "SE_common.h"
 
-const int            WORD_LEN = 100;
-const int            MAXIMUM_NUMBER_OF_RANDOM_EQUATIONS = 100;
-const double         EPSILON = 0.0001;
-
-enum NUMBER_OF_ROOTS {
-    no_roots,
-    one_root,
-    two_roots,
-    infinity_roots
-};
-
-enum CODE_ERRORS     {
-    correct,
-    CMD_arg_incorrect,
-    long_file_name,
-    incorrect_file_name,
-    incorrect_data_format,
-    incorrect_number_of_equations,
-    end_of_file,
-    not_a_finite_number_in_the_input,
-    incorrect_number_of_roots
-};
-
-enum SUCCESS_RATE    {
-    success = 0,
-    error = 1
-};
-
-struct coefficients  {
-    double a;
-    double b;
-    double c;
-};
-
-
-struct roots         {
-    NUMBER_OF_ROOTS n_o_r;
-    double ans1;
-    double ans2;
-};
-
-struct testCase       {
-    coefficients coefficients;
-    roots roots;
-};
-
-#include "SE_colors.cpp"
 #include "SE_math.cpp"
 #include "SE_explore.cpp"
-#include "SE_other.cpp"
+#include "SE_input_output.cpp"
 #include "SE_modes.cpp"
 
-CODE_ERRORS     processCMDArgs(int argc, char *argv[]);                                          //Функции, вызывающиеся всегда и из main
-void            printErrors(CODE_ERRORS error_code);
+
 
 
 
@@ -74,6 +27,11 @@ int main(const int argc, char ** const argv){
 
     return !(error_code == correct);
 }
+
+
+//! @brief Processes command line arguments, calls the function of the corresponding mode
+//!
+//! @return The program error code
 
 CODE_ERRORS     processCMDArgs(int argc, char *argv[]){
 
@@ -99,6 +57,8 @@ CODE_ERRORS     processCMDArgs(int argc, char *argv[]){
 
     return CMD_arg_incorrect;
 }
+
+//! @brief If error_code reports an error during program execution, this function outputs an error message to the terminal
 
 void            printErrors(CODE_ERRORS error_code){
 

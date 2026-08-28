@@ -1,18 +1,13 @@
-void            solveAndPrint(coefficients coefficients);                                          //Решает уравнение и выводит корни
-NUMBER_OF_ROOTS solveSquareEquation(coefficients coefficients, double *ans1, double *ans2);        //Решает квадратное уравнение в общем случае
-NUMBER_OF_ROOTS solveLinearEq(double b, double c, double *ans1);                                   //Решает частный случай вырожденного уравнения
-NUMBER_OF_ROOTS solveSquareEq(coefficients coefficients, double *ans1, double *ans2);              //Решает частный случай гарантированно квадратного уравнения
-
-coefficients    getDerivative(coefficients func_coefficients);
-
-void            printRoots(roots roots);                                                           //Напечатать корни в терминал
-int             isRootCorrect(coefficients coefficients, double root);                             //Проверяет корни подстановкой
-int             isZero(double x);                                                                  //Сравнение с нулем
-SUCCESS_RATE    testTheSolution(coefficients coefficients, roots roots);                           //Тестирование подстановкой
-void            printCalcError(coefficients coefficients, roots roots);                            //Вывод ошибки после подстановки
+/// @file
 
 
 
+
+//! @brief Solves a quadratic equation ax2 + bx + c = 0 and print the roots in CMD
+//!
+//! @param [in] coefficients the structure that contains the coefficients of the equation
+//!
+//! @note Calls
 void            solveAndPrint(coefficients coefficients){
 
     assert(isfinite(coefficients.a));
@@ -24,18 +19,31 @@ void            solveAndPrint(coefficients coefficients){
 
     roots.n_o_r = solveSquareEquation(coefficients, &(roots.ans1), &(roots.ans2));
 
-    switch(testTheSolution(coefficients, roots)){
+    testCase test_case = {.coefficients = coefficients, .roots = roots};
+
+    switch(testTheSolution(test_case)){
         case success:
             printRoots(roots);
             break;
         case error:
-            printCalcError(coefficients, roots);
+            printCalcError(test_case);
             break;
         default:
             ERROR_MASSAGE("Incorrect calc error");
     }
 }
 
+//! @brief Solves a quadratic equation ax2 + bx + c = 0
+//!
+//! @param [in] coefficients the structure that contains the coefficients of the equation
+//!
+//! @param [in] ans1 a pointer to a variable to put the first root in
+//! @param [in] ans2 a pointer to a variable to put the second root in
+//!
+//! @note If there are no roots, nan is placed in ans1 and ans2, if there is one root, it is placed in ans1, nan in ans2,
+//!       if there are two roots, the smaller one is placed in ans1, the larger one in ans2.
+//!
+//! @return an enum that indicates the number of roots
 NUMBER_OF_ROOTS solveSquareEquation(coefficients coefficients, double *ans1, double *ans2){
 
     assert(isfinite(coefficients.a));
@@ -54,6 +62,16 @@ NUMBER_OF_ROOTS solveSquareEquation(coefficients coefficients, double *ans1, dou
     }
 }
 
+//! @brief Solves a special case of a quadratic equation in which it is guaranteed that a = 0
+//!
+//! @param [in] b the variable that contains the  second coefficients of the equation
+//! @param [in] c the variable that contains the third coefficients of the equation
+//!
+//! @param [in] ans1 a pointer to a variable to put the root in
+//!
+//! @note If there are no roots, nan is placed in ans1, if there is one root, it is placed in ans1
+//!
+//! @return an enum that indicates the number of roots
 NUMBER_OF_ROOTS solveLinearEq(double b, double c, double *ans1){
 
     assert(isfinite(b));
@@ -74,6 +92,17 @@ NUMBER_OF_ROOTS solveLinearEq(double b, double c, double *ans1){
     }
 }
 
+//! @brief Solves a special case of a quadratic equation in which it is guaranteed that a is not equal to 0
+//!
+//! @param [in] coefficients the structure that contains the coefficients of the equation
+//!
+//! @param [in] ans1 a pointer to a variable to put the first root in
+//! @param [in] ans2 a pointer to a variable to put the second root in
+//!
+//! @note If there are no roots, nan is placed in ans1 and ans2, if there is one root, it is placed in ans1, nan in ans2,
+//!       if there are two roots, the smaller one is placed in ans1, the larger one in ans2.
+//!
+//! @return an enum that indicates the number of roots
 NUMBER_OF_ROOTS solveSquareEq(coefficients coefficients, double *ans1, double *ans2){
 
     assert(isfinite(coefficients.a));
@@ -99,46 +128,27 @@ NUMBER_OF_ROOTS solveSquareEq(coefficients coefficients, double *ans1, double *a
 
     }else{
         double s_d = sqrt(d);
-        *ans1 = (-1 * coefficients.b - s_d)/(2 * coefficients.a);
-        *ans2 = (-1 * coefficients.b + s_d)/(2 * coefficients.a);
+        if(coefficients.a > 0){
+            *ans1 = (-1 * coefficients.b - s_d)/(2 * coefficients.a);
+            *ans2 = (-1 * coefficients.b + s_d)/(2 * coefficients.a);
+        }else{
+            *ans2 = (-1 * coefficients.b - s_d)/(2 * coefficients.a);
+            *ans1 = (-1 * coefficients.b + s_d)/(2 * coefficients.a);
+        }
+
         return two_roots;
     }
 }
 
-void            printRoots(roots roots){
 
-    switch(roots.n_o_r){
-        case no_roots:
-            assert(isnan(roots.ans1));
-            assert(isnan(roots.ans2));
-            printf("There is no roots\n");
-            break;
 
-        case one_root:
-            assert(isfinite(roots.ans1));
-            assert(isnan(roots.ans2));
-            printf("There is one root: x = %-15.10lg\n", roots.ans1);
-            break;
-
-        case two_roots:
-            assert(isfinite(roots.ans1));
-            assert(isfinite(roots.ans2));
-            printf("There is two roots: x1 = %-15.10lg x2 = %-15.10lg\n", roots.ans1, roots.ans2);
-            break;
-
-        case infinity_roots:
-            assert(isnan(roots.ans1));
-            assert(isnan(roots.ans2));
-            printf("Infinity number of roots\n");
-            break;
-
-        default:
-            ERROR_MASSAGE("Incorrect number of roots");
-
-    }
-    printf("\n");
-}
-
+//! @brief checks the root by substituting into the equation
+//!
+//! @param [in] coefficients the structure that contains the coefficients of the equation
+//!
+//! @param [in] root the root that needs to be checked
+//!
+//! @return 1 if the root is correct, otherwise 0
 int             isRootCorrect(coefficients coefficients, double root){
 
     assert(isfinite(coefficients.a));
@@ -148,52 +158,69 @@ int             isRootCorrect(coefficients coefficients, double root){
 
     return isZero(coefficients.a * pow(root, 2) + coefficients.b * root + coefficients.c);
 }
+//Default comment
 
+
+//! @brief checks whether a number lies in the vicinity of EPSILON (const) from zero
+//!
+//!
+//! @param [in] x the number we are checking
+//!
+//! @note it is necessary to correct the error when calculating the double
+//!
+//! @return 1 if x lies in the vicinity of EPSILON (const) from zero, otherwise 0
 int             isZero(double x){
 
     assert(isfinite(x));
     assert(!isnan(x));
+    assert(true);
 
     return fabs(x) < EPSILON;
 }
 
-SUCCESS_RATE     testTheSolution(coefficients coefficients, roots roots){
+//! @brief Checks the solution of a quadratic equation by substitution
+//!
+//! @param [in] testCase the struct which contains the coefficients of the equation and the roots
+//!
+//! @return success if solution correct, otherwise 0
+SUCCESS_RATE     testTheSolution(testCase testCase){
 
-    assert(isfinite(coefficients.a));
-    assert(isfinite(coefficients.b));
-    assert(isfinite(coefficients.c));
+    assert(isfinite(testCase.coefficients.a));
+    assert(isfinite(testCase.coefficients.b));
+    assert(isfinite(testCase.coefficients.c));
+    assert(isRootsFormatCorrect(testCase.roots));
 
     double d = 0;
 
-    switch (roots.n_o_r){
+    switch (testCase.roots.n_o_r){
         case two_roots:
-            assert(isfinite(roots.ans1));
-            assert(isfinite(roots.ans2));
+            assert(isfinite(testCase.roots.ans1));
+            assert(isfinite(testCase.roots.ans2));
 
-            if(isRootCorrect(coefficients, roots.ans1) && isRootCorrect(coefficients, roots.ans2))
+            if(isRootCorrect(testCase.coefficients, testCase.roots.ans1) && isRootCorrect(testCase.coefficients, testCase.roots.ans2))
                 return success;
             break;
         case one_root:
-            assert(isfinite(roots.ans1));
-            assert(isnan(roots.ans2));
+            assert(isfinite(testCase.roots.ans1));
+            assert(isnan(testCase.roots.ans2));
 
-            if(isRootCorrect(coefficients, roots.ans1))
+            if(isRootCorrect(testCase.coefficients, testCase.roots.ans1))
                 return success;
             break;
         case no_roots:
-            assert(isnan(roots.ans1));
-            assert(isnan(roots.ans2));
+            assert(isnan(testCase.roots.ans1));
+            assert(isnan(testCase.roots.ans2));
 
-            d = coefficients.b * coefficients.b - 4 * coefficients.a * coefficients.c;
+            d = testCase.coefficients.b * testCase.coefficients.b - 4 * testCase.coefficients.a * testCase.coefficients.c;
 
-            if((isZero(coefficients.a) && isZero(coefficients.b) && (!isZero(coefficients.c))) || ((!isZero(d)) && d < 0))
+            if((isZero(testCase.coefficients.a) && isZero(testCase.coefficients.b) && (!isZero(testCase.coefficients.c))) || ((!isZero(d)) && d < 0))
                 return success;
             break;
         case infinity_roots:
-            assert(isnan(roots.ans1));
-            assert(isnan(roots.ans2));
+            assert(isnan(testCase.roots.ans1));
+            assert(isnan(testCase.roots.ans2));
 
-            if(isZero(coefficients.a) && isZero(coefficients.b) && isZero(coefficients.c))
+            if(isZero(testCase.coefficients.a) && isZero(testCase.coefficients.b) && isZero(testCase.coefficients.c))
                 return success;
             break;
         default:
@@ -203,18 +230,13 @@ SUCCESS_RATE     testTheSolution(coefficients coefficients, roots roots){
     return error;
 }
 
-void            printCalcError(coefficients coefficients, roots roots){
 
-    assert(isfinite(coefficients.a));
-    assert(isfinite(coefficients.b));
-    assert(isfinite(coefficients.c));
-    assert(isfinite(roots.ans1));
-    assert(isfinite(roots.ans2));
 
-    printf(BOLD RED "Error during equation solving:\nCoefficients: %lg %lg %lg\nOutput:\n" DEFAULT, coefficients.a, coefficients.b, coefficients.c);
-    printRoots(roots);
-}
-
+//! @brief get derivative
+//!
+//! @param [in] func_coefficients the struct which contains the coefficients of function
+//!
+//! @return the struct der_coefficients which contains the coefficients of the derivative function
 coefficients getDerivative(coefficients func_coefficients){
 
     coefficients der_coefficients = {};
@@ -222,4 +244,79 @@ coefficients getDerivative(coefficients func_coefficients){
     der_coefficients.c = func_coefficients.b;
 
     return der_coefficients;
+}
+
+//! @brief Check the roots for the correct format
+//!
+//! @param [in] roots the struct which contains roots
+//!
+//! @return 1 if roots format is correct, otherwise 0
+int isRootsFormatCorrect(roots roots){
+
+    switch(roots.n_o_r){
+        case no_roots:
+            return 1;
+        case one_root:
+            return isfinite(roots.ans1) ? 1 : 0;
+        case two_roots:
+            return (isfinite(roots.ans1) && isfinite(roots.ans2)) ? 1 : 0;
+        case infinity_roots:
+            return 1;
+        default:
+            ERROR_MASSAGE("Incorrect number of roots");
+    }
+}
+
+//! @brief It takes integer number and converts it to the corresponding enum
+//!
+//! @param [out] n_o_r a pointer to the enum to which the function will write the result.
+//!
+//! @param [in]  n_o_r_int the number we want to convert to enum
+//!
+//! @return Success if there is an enum corresponding to the given number, otherwise error
+SUCCESS_RATE    transformIntToSwitch(NUMBER_OF_ROOTS *n_o_r, int n_o_r_int){
+
+    const int no_roots_code       = (int) no_roots;
+    const int one_root_code       = (int) one_root;
+    const int two_roots_code      = (int) two_roots;
+    const int infinity_roots_code = (int) infinity_roots;
+
+    switch(n_o_r_int){
+        case no_roots_code:
+            *n_o_r = no_roots;
+            break;
+        case one_root_code:
+            *n_o_r = one_root;
+            break;
+        case two_roots_code:
+            *n_o_r = two_roots;
+            break;
+        case infinity_roots_code:
+            *n_o_r = infinity_roots;
+            break;
+        default:
+            return error;
+    }
+    return success;
+}
+
+//! @brief Return random number
+//!
+//! @param [in] roots struct that contains data about the roots
+//!
+//! @return random double number from range [RAND_MIN, RAND_MAX]
+double getRandNumber(){
+    return ((((double)rand())/RAND_MAX) * (MAX_RAND - MIN_RAND)) + MIN_RAND;
+}
+
+//! @brief Generated random coefficients
+//!
+//! @param [out] coefficients a pointer to the structure where the random coefficients will be placed
+void            getRandCoefficients(coefficients *coefficients){
+
+    assert(coefficients != NULL);
+
+    coefficients->a = getRandNumber();
+    coefficients->b = getRandNumber();
+    coefficients->c = getRandNumber();
 }
