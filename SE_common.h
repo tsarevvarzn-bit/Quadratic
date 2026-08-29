@@ -1,29 +1,46 @@
+/// @brief Print error massage and end the program
 #define ERROR_MASSAGE(str)      printf("\nERROR MASSAGE: %s, file %s, function: %s, line %d", str, __FILE__, __func__, __LINE__); \
                                 abort()
 
 /// @brief Maximum number of symbols, that we can read and save
 /// @note This is necessary to ensure security when entering text, to avoid the error of overflowing the array
-const int            WORD_LEN =                            100;
+const int     WORD_LEN = 100;
 
 /// @brief If the user has entered too many equations, we ask him if he is sure
 /// @note Generating and solving more than 1000 equations takes a sufficient amount of time, if the user makes a mistake, the program can enter an endless loop
-const int            MAXIMUM_NUMBER_OF_RANDOM_EQUATIONS = 1000;
+const int     MAXIMUM_NUMBER_OF_RANDOM_EQUATIONS = 1000;
 
 /// @brief The calculation error we assume is used to compare the numbers in the function isZero()
-const double         EPSILON =                          0.0001;
+const double  EPSILON = 0.0001;
 
 /// @brief The maximum number that the function getRandNumber() can output
-const double         MAX_RAND =                         100000;
+const double  MAX_RAND = 100000;
 
 /// @brief The minimum number that the function getRandNumber() can output
-const double         MIN_RAND =                        -100000;
+const double  MIN_RAND = -100000;
+
+const int     WIDTH = 91;
+
+const int     HEIGHT = 41;
+
+const double  MAX_SCALE = 1000;
+
+const double  MIN_SCALE = 0.1;
+
+const int     NUMBER_OF_DIGIT_TO_PRINT = 5;
+
+const int     NUMBER_OF_CHARACTER_BETWEEN_NUMBERS_OX = 10;
+
+const int     NUMBER_OF_CHARACTER_BETWEEN_NUMBERS_OY = 5;
+
+const int     NUMBER_OF_DIGIT_IN_DOUBLE = 20;
 
 /// @brief Enum for transmitting the number of roots
 enum NUMBER_OF_ROOTS {
-    no_roots,      //!< There is no real roots
-    one_root,      //!< There is only one real root
-    two_roots,     //!< There is two different real roots
-    infinity_roots //!<Any real number is a root
+    no_roots,                        //!< There is no real roots
+    one_root,                        //!< There is only one real root
+    two_roots,                       //!< There is two different real roots
+    infinity_roots                   //!<Any real number is a root
 };
 
 /// @brief Enum to return the error with which the program ended or information that the program worked without errors
@@ -37,7 +54,8 @@ enum CODE_ERRORS     {
     incorrect_number_of_equations,   //!< The user entered an incorrect number indicating the number of equations that need to be generated and solved
     end_of_file,                     //!< The file has been completely read, no more data can be taken from there.
     not_a_finite_number_in_the_input,//!< The data received from the user include nan, inf or -inf insted of finite number
-    incorrect_number_of_roots        //!< The number indicating the number of roots entered by the user is not included in the allowed set {0, 1, 2, 3}
+    incorrect_number_of_roots,       //!< The number indicating the number of roots entered by the user is not included in the allowed set {0, 1, 2, 3}
+    could_not_allocate_memory
 };
 
 /// @brief Enum to return success rate of called function
@@ -67,6 +85,22 @@ struct testCase       {
     coefficients    coefficients;    //!< Enum to store the coefficients of a particular quadratic equation
     roots           roots;           //!< Struct that stores the complete solution of a particular quadratic equation
 };
+
+struct canvasConfig   {
+    double scale_x;
+    double scale_y;
+    double x_shift; //Сдвиг центральной точки
+    double y_shift;
+};
+struct canvas         {
+    int    width;
+    int    height;
+    canvasConfig config;
+    char** data;   // data[width][height]
+};
+
+
+
 
 
 
@@ -124,10 +158,14 @@ int             isRootCorrect(coefficients coefficients, double root);          
 int             isZero(double x);                                                                  //Сравнение с нулем
 SUCCESS_RATE    testTheSolution(testCase testCase);                                                //Тестирование подстановкой
 void            printCalcError(testCase testCase);                                                 //Вывод ошибки после подстановки
+double          calculateTheFunctionValue(coefficients coefficients, double x);
 
 int             isRootsFormatCorrect(roots roots);
 double          getRandNumber();
 SUCCESS_RATE    transformIntToSwitch(NUMBER_OF_ROOTS *n_o_r, int n_o_r_int);
+
+double          max(double a, double b);
+double          min(double a, double b);
 
 //SE_explore.cpp
 void            exploreFunction(coefficients coefficients, FILE *out);
@@ -138,3 +176,23 @@ void            exploreHorizontal(coefficients coefficients, FILE *out);
 
 void            printFunction(coefficients coefficients, FILE *out);
 void            printNumWithSign(double x);
+
+CODE_ERRORS            printGraphOfFunction(FILE* out, coefficients coefficients);
+
+CODE_ERRORS     canvasCreate(canvas** canvas_p_p, int width, int height);
+void            canvasPrint(canvas* canvas_p, FILE* out);
+void            canvasFree(canvas* canvas_p);
+
+void            canvasPrintAxis(canvas* canvas_p);
+void            canvasPrintGraph(canvas* canvas_p, coefficients coefficients);
+void            canvasPrintFunctionPoints(canvas* canvas_p, coefficients coefficients);
+void            canvasPrintAxisDesignations(canvas* canvas_p);
+
+void            canvasSetSymbol(canvas* canvas_p, int x, int y, char c);
+void            canvasSetMathDot(canvas *canvas_p, double mat_x, double mat_y, char c);
+
+void            canvasGetConfig(canvas* canvas_p, coefficients coefficients);
+int             functionValueSymbol(canvas* canvas_p, coefficients coefficients, double x);
+
+void            canvasPrintDouble(canvas* canvas_p, int x_symbol, int y_symbol, double number);
+void            canvasPrintConfig(canvas* canvas_p);

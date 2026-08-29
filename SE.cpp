@@ -32,7 +32,6 @@ int main(const int argc, char ** const argv){
 //! @brief Processes command line arguments, calls the function of the corresponding mode
 //!
 //! @return The program error code
-
 CODE_ERRORS     processCMDArgs(int argc, char *argv[]){
 
     printf("\n");
@@ -59,7 +58,6 @@ CODE_ERRORS     processCMDArgs(int argc, char *argv[]){
 }
 
 //! @brief If error_code reports an error during program execution, this function outputs an error message to the terminal
-
 void            printErrors(CODE_ERRORS error_code){
 
     switch(error_code){
@@ -94,8 +92,12 @@ void            printErrors(CODE_ERRORS error_code){
             printf(BOLD RED "ERROR: Incorrect number of roots\n\n" DEFAULT);
             break;
 
+        case could_not_allocate_memory:
+            printf(BOLD RED "Could not allocate memory\n\n" DEFAULT);
+            break;
+
         case end_of_file:
-            printf(BOLD GREEN"The file has been fully read and processed correctly\n\n" DEFAULT);
+            printf(BOLD GREEN "The file has been fully read and processed correctly\n\n" DEFAULT);
             break;
 
         default:

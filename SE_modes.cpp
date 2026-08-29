@@ -1,7 +1,5 @@
 /// @file
 
-
-
 //! @brief Run rand mode, launches auxiliary functions corresponding to this mode
 //!
 //! @return The program error code
@@ -47,7 +45,9 @@ CODE_ERRORS     runManualMode(){
     while((error_code = getCoefficients(&coefficients, stdin)) != end_of_file){
 
         if(error_code == correct){
-            exploreFunction(coefficients, stdout);//Математическое исследование функции с (пока без) построением графика
+
+            if((error_code = exploreFunction(coefficients, stdout)) != correct)
+                return error_code;
 
             printf(YELLOW "Do you want to continue? Y/N:" DEFAULT);
 
@@ -134,29 +134,29 @@ CODE_ERRORS     runHelpMode(){
     printf(BOLD  VIOLET "This program solves quadratic equations of the form:\n\n" DEFAULT);
     printf(             "    ax^2 + bx + c = 0\n\n");
 
-    printf(BOLD VIOLET  "Operating modes (set via command-line argument):\n\n" DEFAULT);
+    printf(BOLD VIOLET "Operating modes (set via command-line argument):\n\n" DEFAULT);
 
-    printf(BOLD GREEN   "  m" DEFAULT " -> " BOLD "manual mode\n" DEFAULT);
-    printf(             "      Enter coefficients directly in the console and get the solution\n\n");
+    printf(BOLD GREEN  "  m" DEFAULT " -> " BOLD "manual mode\n" DEFAULT);
+    printf(            "      Enter coefficients directly in the console and get " YELLOW "the explore of function" DEFAULT" and " YELLOW "graph\n\n");
 
     printf(BOLD GREEN  "  f" DEFAULT " -> " BOLD "file mode\n" DEFAULT);
     printf(            "      Write several equations into a file - the program will solve each one\n\n");
 
-    printf(BOLD GREEN "  r" DEFAULT " -> " BOLD "random mode\n" DEFAULT);
-    printf(           "      Generates random coefficients and solves the equations\n");
-    printf(           "      " YELLOW "Options:\n" DEFAULT);
-    printf(           "            " DEFAULT "Use your seed for the generator\n");
-    printf(           "            " DEFAULT "Seed will be taken from current time (different results every run)\n\n");
+    printf(BOLD GREEN  "  r" DEFAULT " -> " BOLD "random mode\n" DEFAULT);
+    printf(            "      Generates random coefficients and solves the equations\n");
+    printf(            "      " YELLOW "Options:\n" DEFAULT);
+    printf(            "            " DEFAULT "Use your seed for the generator\n");
+    printf(            "            " DEFAULT "Seed will be taken from current time (different results every run)\n\n");
 
-    printf(BOLD GREEN "  t" DEFAULT " -> " BOLD "test mode\n" DEFAULT);
-    printf(           "      Verifies solutions for correctness\n");
-    printf(           "      " YELLOW "Ways to run:\n" DEFAULT);
-    printf(           "        " CYAN "    " DEFAULT "Input test data from console (coefficients + expected roots)\n");
-    printf(           "        " CYAN "    " DEFAULT "Input test data from file (coefficients + expected roots)\n");
-    printf(           "        " CYAN "    " DEFAULT "Use predefined data in code\n\n");
+    printf(BOLD GREEN  "  t" DEFAULT " -> " BOLD "test mode\n" DEFAULT);
+    printf(            "      Verifies solutions for correctness\n");
+    printf(            "      " YELLOW "Ways to run:\n" DEFAULT);
+    printf(            "        " CYAN "    " DEFAULT "Input test data from console (coefficients + expected roots)\n");
+    printf(            "        " CYAN "    " DEFAULT "Input test data from file (coefficients + expected roots)\n");
+    printf(            "        " CYAN "    " DEFAULT "Use predefined data in code\n\n");
 
-    printf(BOLD GREEN "  h" DEFAULT " -> " BOLD "help\n" DEFAULT);
-    printf(           "      Show this help message\n\n");
+    printf(BOLD GREEN  "  h" DEFAULT " -> " BOLD "help\n" DEFAULT);
+    printf(            "      Show this help message\n\n");
 
     printf(BOLD VIOLET "Useful additions:\n" DEFAULT);
     printf(            "  Any solution is automatically checked by podstanovka\n");

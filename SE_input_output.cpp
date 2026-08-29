@@ -1,14 +1,8 @@
 /// @file
 
-
-
-
-
-
 //! @brief It takes all characters from the specified file until it encounters '\n', clearing the input for other functions
 //!
 //! @param [in] input a pointer to the file where the characters will be taken from
-
 void            clearBuf(FILE *input){
 
     int c = 0;
@@ -26,7 +20,6 @@ void            clearBuf(FILE *input){
 //! @note In order for the data to be read and processed, it must be presented in a specific format: a b c '\n', where a, b, c - integer finite numbers
 //!
 //! @return Error code
-
 CODE_ERRORS     getCoefficients(coefficients *coefficients, FILE *input){
 
     assert(input != NULL);
@@ -59,29 +52,28 @@ CODE_ERRORS     getCoefficients(coefficients *coefficients, FILE *input){
 //!       2 - two roots(ans1, ans2 - finite numbers), 3 - infinity number of roots(ans1, ans2 - any numbers)
 //!
 //! @return Error code
-
-CODE_ERRORS     getCoeffAndAns(testCase *testCase, FILE *input){
+CODE_ERRORS     getCoeffAndAns(testCase *test_case_p, FILE *input){
 
     assert(input != NULL);
-    assert(testCase != NULL);
+    assert(test_case_p != NULL);
 
-    testCase->coefficients.a = testCase->coefficients.b = testCase->coefficients.c = testCase->roots.ans1 = testCase->roots.ans2 = 0;
+    test_case_p->coefficients.a = test_case_p->coefficients.b = test_case_p->coefficients.c = test_case_p->roots.ans1 = test_case_p->roots.ans2 = 0;
 
     int n_o_r_int = -1;
 
     if(input == stdin)
         printf(YELLOW "Print coefficients and answer in one line:" DEFAULT " a b c number_of_roots root1 root2\n");
 
-    if(fscanf(input, "%lf %lf %lf %d %lf %lf", &(testCase->coefficients.a),
-                                               &(testCase->coefficients.b),
-                                               &(testCase->coefficients.a),
+    if(fscanf(input, "%lf %lf %lf %d %lf %lf", &(test_case_p->coefficients.a),
+                                               &(test_case_p->coefficients.b),
+                                               &(test_case_p->coefficients.c),
                                                &n_o_r_int,
-                                               &(testCase->roots.ans1),
-                                               &(testCase->roots.ans1)) == 6){
+                                               &(test_case_p->roots.ans1),
+                                               &(test_case_p->roots.ans2)) == 6){
 
-        if(isRootsFormatCorrect(testCase->roots)){
+        if(isRootsFormatCorrect(test_case_p->roots)){
 
-            if(transformIntToSwitch(&(testCase->roots.n_o_r), n_o_r_int) == error)
+            if(transformIntToSwitch(&(test_case_p->roots.n_o_r), n_o_r_int) == error)
                 return incorrect_number_of_roots;
 
             return checkInputOnEnter(input);
@@ -99,16 +91,15 @@ CODE_ERRORS     getCoeffAndAns(testCase *testCase, FILE *input){
 //!
 //! @param [out] input a pointer to a pointer to the FILE* from which the user wants to enter data
 //!
-//! @param [out] isInternal a pointer to a variable indicating whether the user wants to run the internal tests.
+//! @param [out] is_internal_p a pointer to a variable indicating whether the user wants to run the internal tests.
 //!
 //! @return Error code
-
-CODE_ERRORS     getInputForRunUnitTests(FILE **input, int *isInternal){
+CODE_ERRORS     getInputForRunUnitTests(FILE **input, int *is_internal_p){
 
     assert(input);
-    assert(isInternal);
+    assert(is_internal_p);
 
-    *isInternal = 0;
+    *is_internal_p = 0;
     printf(YELLOW "Do you want read tests from file, enter tests from CMD or run internal tests? f/c/p:" DEFAULT);
     int c = getchar();
     clearBuf(stdin);
@@ -127,7 +118,7 @@ CODE_ERRORS     getInputForRunUnitTests(FILE **input, int *isInternal){
         if((error_code = enterFileName(input)) != correct)
             return error_code;
     }else if(c == 'p'){
-        *isInternal = 1;
+        *is_internal_p = 1;
     }
     return correct;
 }
@@ -139,7 +130,6 @@ CODE_ERRORS     getInputForRunUnitTests(FILE **input, int *isInternal){
 //! @param [out] input_file pointer to the pointer to the file that the user wants to open
 //!
 //! @return Error code
-
 CODE_ERRORS     enterFileName(FILE **input_file){
 
     assert(input_file);
@@ -166,7 +156,6 @@ CODE_ERRORS     enterFileName(FILE **input_file){
 //! @brief Expects yes or no answer from the user, processing incorrect input and waiting for correct input
 //!
 //! @return Error code
-
 int             checkTerminalForYes(){
 
     int c = 0;
@@ -189,8 +178,9 @@ int             checkTerminalForYes(){
 //! @param [out] input pointer to the file that we want to check
 //!
 //! @return Error code
-
 CODE_ERRORS     checkInputOnEnter(FILE *input){
+
+    assert(input);
 
     int c = 0;
     while(((c = getc(input)) != '\n') && isspace(c));
@@ -210,7 +200,6 @@ CODE_ERRORS     checkInputOnEnter(FILE *input){
 //! @note If the user wants to generate a random seed, it will be generated using time
 //!
 //! @return seed how unsigned int
-
 unsigned int    getSeed(){
 
     int seed = 0;
@@ -244,14 +233,14 @@ unsigned int    getSeed(){
 //! @return always and_of_file
 CODE_ERRORS      runUsersTests(FILE *input){
 
-    testCase testCase = {};
+    testCase test_case = {};
     int num_of_test = 1;
     CODE_ERRORS error_code = correct;
 
-    while((error_code = getCoeffAndAns(&testCase, input)) != end_of_file){
+    while((error_code = getCoeffAndAns(&test_case, input)) != end_of_file){
 
         if(error_code == correct){
-            runOneUnitTest(testCase, num_of_test);
+            runOneUnitTest(test_case, num_of_test);
             num_of_test++;
 
         }else if(error_code == incorrect_data_format){
@@ -285,7 +274,7 @@ void            printUnitTestResult(SUCCESS_RATE s_r, testCase testCase, roots r
 
     if(s_r == success){
         printf(BOLD GREEN "Test %d CORRECT: a = %lg b = %lg c = %lg\n"
-                          "Output:    %d roots, x1 = %lg, x2 = %lg\n" DEFAULT,
+                          "Output:      %d roots, x1 = %lg, x2 = %lg\n" DEFAULT,
                           num_of_test, testCase.coefficients.a, testCase.coefficients.b, testCase.coefficients.c,
                                        testCase.roots.n_o_r,    testCase.roots.ans1,     testCase.roots.ans2);
     }else{
@@ -300,16 +289,16 @@ void            printUnitTestResult(SUCCESS_RATE s_r, testCase testCase, roots r
 
 //! @brief print error when the program solved the equation, but the roots do not fit when substituting
 //!
-//! @param [in] testCase the struct which contains the coefficients of the equation and the roots
-void            printCalcError(testCase testCase){
+//! @param [in] test_case the struct which contains the coefficients of the equation and the roots
+void            printCalcError(testCase test_case){
 
-    assert(isfinite(testCase.coefficients.a));
-    assert(isfinite(testCase.coefficients.b));
-    assert(isfinite(testCase.coefficients.c));
-    assert(isRootsFormatCorrect(testCase.roots));
+    assert(isfinite(test_case.coefficients.a));
+    assert(isfinite(test_case.coefficients.b));
+    assert(isfinite(test_case.coefficients.c));
+    assert(isRootsFormatCorrect(test_case.roots));
 
-    printf(BOLD RED "Error during equation solving:\nCoefficients: %lg %lg %lg\nOutput:\n" DEFAULT, testCase.coefficients.a, testCase.coefficients.b, testCase.coefficients.c);
-    printRoots(testCase.roots);
+    printf(BOLD RED "Error during equation solving:\nCoefficients: %lg %lg %lg\nOutput:\n" DEFAULT, test_case.coefficients.a, test_case.coefficients.b, test_case.coefficients.c);
+    printRoots(test_case.roots);
 }
 
 //! @brief print roots in terminal
